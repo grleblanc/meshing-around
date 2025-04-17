@@ -8,7 +8,7 @@ import os
 import http.server
 
 # Set the desired IP address
-server_ip = '127.0.0.1'
+server_ip = '0.0.0.0'
 
 # Set the port for the server
 PORT = 8420
@@ -41,7 +41,7 @@ class QuietHandler(http.server.SimpleHTTPRequestHandler):
 os.chdir(webRoot)
 
 # boot up simple HTTP server
-httpd = http.server.HTTPServer(('127.0.0.1', PORT), QuietHandler)
+httpd = http.server.HTTPServer((server_ip, PORT), QuietHandler)
 
 if SSL:
     ctx = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
@@ -53,7 +53,7 @@ if SSL:
     httpd.socket = ctx.wrap_socket(httpd.socket, server_side=True)
 
 # Create the HTTP server instance with the desired IP address
-httpd = http.server.HTTPServer((server_ip, PORT), QuietHandler)
+# httpd = http.server.HTTPServer((server_ip, PORT), QuietHandler)
 
 # Print out the URL using the IP address stored in server_ip
 print(f"Serving reports at http://{server_ip}:{PORT} Press ^C to quit.\n\n")

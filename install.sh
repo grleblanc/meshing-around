@@ -18,7 +18,7 @@ if [ $program_path != "/opt/meshing-around" ]; then
     printf "Do you want to move the project to /opt/meshing-around? (y/n)"
     read move
     if [[ $(echo "$move" | grep -i "^y") ]]; then
-        sudo mv $program_path /opt/meshing-around
+         mv $program_path /opt/meshing-around
         cd /opt/meshing-around
         printf "\nProject moved to /opt/meshing-around. re-run the installer\n"
         exit 0
@@ -27,7 +27,7 @@ fi
 
 # check write access to program path
 if [[ ! -w ${program_path} ]]; then
-    printf "\nInstall path not writable, try running the installer with sudo\n"
+    printf "\nInstall path not writable, try running the installer with \n"
     exit 1
 fi
 
@@ -48,12 +48,12 @@ else
     if ! command -v python3 &> /dev/null
     then
         printf "python3 not found, trying 'apt-get install python3 python3-pip'\n"
-        sudo apt-get install python3 python3-pip
+         apt-get install python3 python3-pip
     fi
     if ! command -v pip &> /dev/null
     then
         printf "pip not found, trying 'apt-get install python3-pip'\n"
-        sudo apt-get install python3-pip
+         apt-get install python3-pip
     fi
 
     # double check for python3 and pip
@@ -72,9 +72,9 @@ fi
 
 # add user to groups for serial access
 printf "\nAdding user to dialout, bluetooth, and tty groups for serial access\n"
-sudo usermod -a -G dialout $USER
-sudo usermod -a -G tty $USER
-sudo usermod -a -G bluetooth $USER
+ usermod -a -G dialout $USER
+ usermod -a -G tty $USER
+ usermod -a -G bluetooth $USER
 
 # copy service files
 cp etc/pong_bot.tmp etc/pong_bot.service
@@ -119,8 +119,8 @@ else
                 python3 -m venv venv
                 source venv/bin/activate
             else
-                printf "\nVirtual environment not found, trying `sudo apt-get install python3-venv`\n"
-                sudo apt-get install python3-venv
+                printf "\nVirtual environment not found, trying ` apt-get install python3-venv`\n"
+                 apt-get install python3-venv
             fi
             # create virtual environment
             python3 -m venv venv
@@ -187,23 +187,23 @@ if [[ $(echo "${embedded}" | grep -i "^n") ]]; then
 fi
 
 if [[ $(echo "${meshbotservice}" | grep -i "^y") ]] || [[ $(echo "${embedded}" | grep -i "^y") ]]; then
-    sudo useradd -M meshbot
-    sudo usermod -L meshbot
-    sudo groupadd meshbot
-    sudo usermod -a -G meshbot meshbot
+     useradd -M meshbot
+     usermod -L meshbot
+     groupadd meshbot
+     usermod -a -G meshbot meshbot
     whoami="meshbot"
     echo "Added user meshbot with no home directory"
 else
     whoami=$(whoami)
 fi
 # set basic permissions for the bot user
-sudo usermod -a -G dialout $whoami
-sudo usermod -a -G tty $whoami
-sudo usermod -a -G bluetooth $whoami
+ usermod -a -G dialout $whoami
+ usermod -a -G tty $whoami
+ usermod -a -G bluetooth $whoami
 echo "Added user $whoami to dialout, tty, and bluetooth groups"
 
-sudo chown -R $whoami:$whoami $program_path/logs
-sudo chown -R $whoami:$whoami $program_path/data
+ chown -R $whoami:$whoami $program_path/logs
+ chown -R $whoami:$whoami $program_path/data
 echo "Permissions set for meshbot on logs and data directories"
 
 # set the correct user in the service file
@@ -221,18 +221,18 @@ printf "\n service files updated\n"
 
 if [[ $(echo "${bot}" | grep -i "^p") ]]; then
     # install service for pong bot
-    sudo cp etc/pong_bot.service /etc/systemd/system/
-    sudo systemctl enable pong_bot.service
-    sudo systemctl daemon-reload
+     cp etc/pong_bot.service /etc/systemd/system/
+     systemctl enable pong_bot.service
+     systemctl daemon-reload
     echo "to start pong bot service: systemctl start pong_bot"
     service="pong_bot"
 fi
 
 if [[ $(echo "${bot}" | grep -i "^m") ]]; then
     # install service for mesh bot
-    sudo cp etc/mesh_bot.service /etc/systemd/system/
-    sudo systemctl enable mesh_bot.service
-    sudo systemctl daemon-reload
+     cp etc/mesh_bot.service /etc/systemd/system/
+     systemctl enable mesh_bot.service
+     systemctl daemon-reload
     echo "to start mesh bot service: systemctl start mesh_bot"
     service="mesh_bot"
 fi
@@ -243,7 +243,7 @@ if [[ $(echo "${embedded}" | grep -i "^n") ]]; then
     printf "\nDo you want to install the emoji font for debian/ubuntu linux? (y/n)"
     read emoji
     if [[ $(echo "${emoji}" | grep -i "^y") ]]; then
-        sudo apt-get install -y fonts-noto-color-emoji
+         apt-get install -y fonts-noto-color-emoji
         echo "Emoji font installed!, reboot to load the font"
     fi
 
@@ -268,16 +268,16 @@ if [[ $(echo "${embedded}" | grep -i "^n") ]]; then
 
     # document the service install
     printf "To install the %s service and keep notes, reference following commands:\n\n" "$service" > install_notes.txt
-    printf "sudo cp %s/etc/%s.service /etc/systemd/system/etc/%s.service\n" "$program_path" "$service" "$service" >> install_notes.txt
-    printf "sudo systemctl daemon-reload\n" >> install_notes.txt
-    printf "sudo systemctl enable %s.service\n" "$service" >> install_notes.txt
-    printf "sudo systemctl start %s.service\n" "$service" >> install_notes.txt
-    printf "sudo systemctl status %s.service\n" "$service" >> install_notes.txt
-    printf "sudo systemctl restart %s.service\n\n" "$service" >> install_notes.txt
+    printf " cp %s/etc/%s.service /etc/systemd/system/etc/%s.service\n" "$program_path" "$service" "$service" >> install_notes.txt
+    printf " systemctl daemon-reload\n" >> install_notes.txt
+    printf " systemctl enable %s.service\n" "$service" >> install_notes.txt
+    printf " systemctl start %s.service\n" "$service" >> install_notes.txt
+    printf " systemctl status %s.service\n" "$service" >> install_notes.txt
+    printf " systemctl restart %s.service\n\n" "$service" >> install_notes.txt
     printf "To see logs and stop the service:\n" >> install_notes.txt
-    printf "sudo journalctl -u %s.service\n" "$service" >> install_notes.txt
-    printf "sudo systemctl stop %s.service\n" "$service" >> install_notes.txt
-    printf "sudo systemctl disable %s.service\n" "$service" >> install_notes.txt
+    printf " journalctl -u %s.service\n" "$service" >> install_notes.txt
+    printf " systemctl stop %s.service\n" "$service" >> install_notes.txt
+    printf " systemctl disable %s.service\n" "$service" >> install_notes.txt
     
     if [[ $(echo "${venv}" | grep -i "^y") ]]; then
         printf "\nFor running on venv, virtual launch bot with './launch.sh mesh' in path $program_path\n" >> install_notes.txt
@@ -288,7 +288,7 @@ if [[ $(echo "${embedded}" | grep -i "^n") ]]; then
     printf "\nGood time to reboot? (y/n)"
     read reboot
     if [[ $(echo "${reboot}" | grep -i "^y") ]]; then
-        sudo reboot
+         reboot
     fi
 else
     # we are on embedded
@@ -303,18 +303,18 @@ else
     #replace="s|After=network.target|After=network.target meshtasticd.service|g"
 
     # Set up the meshing around service
-    sudo cp /opt/meshing-around/etc/$service.service /etc/systemd/system/$service.service
-    sudo systemctl daemon-reload
-    sudo systemctl enable $service.service
-    sudo systemctl start $service.service
+     cp /opt/meshing-around/etc/$service.service /etc/systemd/system/$service.service
+     systemctl daemon-reload
+     systemctl enable $service.service
+     systemctl start $service.service
     printf "Reference following commands:\n\n" "$service" > install_notes.txt
-    printf "sudo systemctl status %s.service\n" "$service" >> install_notes.txt
-    printf "sudo systemctl start %s.service\n" "$service" >> install_notes.txt
-    printf "sudo systemctl restart %s.service\n\n" "$service" >> install_notes.txt
+    printf " systemctl status %s.service\n" "$service" >> install_notes.txt
+    printf " systemctl start %s.service\n" "$service" >> install_notes.txt
+    printf " systemctl restart %s.service\n\n" "$service" >> install_notes.txt
     printf "To see logs and stop the service:\n" >> install_notes.txt
-    printf "sudo journalctl -u %s.service\n" "$service" >> install_notes.txt
-    printf "sudo systemctl stop %s.service\n" "$service" >> install_notes.txt
-    printf "sudo systemctl disable %s.service\n" "$service" >> install_notes.txt
+    printf " journalctl -u %s.service\n" "$service" >> install_notes.txt
+    printf " systemctl stop %s.service\n" "$service" >> install_notes.txt
+    printf " systemctl disable %s.service\n" "$service" >> install_notes.txt
 fi
 
 printf "\nInstallation complete!\n"
@@ -323,26 +323,26 @@ exit 0
 
 # to uninstall the product run the following commands as needed
 
-# sudo systemctl stop mesh_bot
-# sudo systemctl disable mesh_bot
-# sudo systemctl stop pong_bot
-# sudo systemctl disable pong_bot
-# sudo systemctl stop mesh_bot_reporting
-# sudo systemctl disable mesh_bot_reporting
-# sudo rm /etc/systemd/system/mesh_bot.service
-# sudo rm /etc/systemd/system/mesh_bot_reporting.service
-# sudo rm /etc/systemd/system/mesh_bot_w3.service
-# sudo rm /etc/systemd/system/pong_bot.service
-# sudo systemctl daemon-reload
-# sudo systemctl reset-failed
+#  systemctl stop mesh_bot
+#  systemctl disable mesh_bot
+#  systemctl stop pong_bot
+#  systemctl disable pong_bot
+#  systemctl stop mesh_bot_reporting
+#  systemctl disable mesh_bot_reporting
+#  rm /etc/systemd/system/mesh_bot.service
+#  rm /etc/systemd/system/mesh_bot_reporting.service
+#  rm /etc/systemd/system/mesh_bot_w3.service
+#  rm /etc/systemd/system/pong_bot.service
+#  systemctl daemon-reload
+#  systemctl reset-failed
 
-# sudo gpasswd -d meshbot dialout
-# sudo gpasswd -d meshbot tty
-# sudo gpasswd -d meshbot bluetooth
-# sudo groupdel meshbot
-# sudo userdel meshbot
+#  gpasswd -d meshbot dialout
+#  gpasswd -d meshbot tty
+#  gpasswd -d meshbot bluetooth
+#  groupdel meshbot
+#  userdel meshbot
 
-# sudo rm -rf /opt/meshing-around
+#  rm -rf /opt/meshing-around
 
 
 # after install shenannigans

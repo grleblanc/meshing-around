@@ -13,6 +13,7 @@ import time # for sleep, get some when you can :)
 import random
 from modules.log import *
 from modules.system import *
+import paho.mqtt.client as mqtt
 
 # list of commands to remove from the default list for DM only
 restrictedCommands = ["blackjack", "videopoker", "dopewars", "lemonstand", "golfsim", "mastermind", "hangman", "hamtest"]
@@ -22,6 +23,42 @@ restrictedResponse = "🤖only available in a Direct Message📵" # "" for none
 DEBUGpacket = False # Debug print the packet rx
 DEBUGhops = False # Debug print hop info and bad hop count packets
 
+MQTT_BROKER = "10.250.1.111"
+MQTT_PORT = 1883
+MQTT_TOPIC = "meshtastic/packets"
+
+def publish_dict_to_mqtt(mqtt_broker, port, topic, dictionary):
+    """
+    Publishes a Python dictionary as a JSON string to an MQTT topic.
+
+    Args:
+        mqtt_broker (str): The hostname or IP address of the MQTT broker.
+        port (int): The port number of the MQTT broker (usually 1883).
+        topic (str): The MQTT topic to publish to.
+        dictionary (dict): The Python dictionary to publish.
+    """
+    client = mqtt.Client()
+    client.username_pw_set(username="", password="")
+
+    try:
+        client.connect(mqtt_broker, port)
+        client.loop_start()  # Start the MQTT network loop in a background thread
+
+        # Convert the dictionary to a JSON string
+        payload = json.dumps(dictionary, default=str)
+
+        # Publish the JSON payload to the specified topic
+        client.publish(topic, payload)
+        print(f"Published to topic '{topic}': {payload}")
+
+    except ConnectionRefusedError:
+        print(f"Error: Connection refused to MQTT broker at {mqtt_broker}:{port}")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+    finally:
+        client.loop_stop()  # Stop the MQTT network loop
+        client.disconnect()
+        
 def auto_response(message, snr, rssi, hop, pkiStatus, message_from_id, channel_number, deviceID, isDM):
     global cmdHistory
     #Auto response to messages
@@ -1075,6 +1112,10 @@ def onReceive(packet, interface):
     # Priocess the incoming packet, handles the responses to the packet with auto_response()
     # Sends the packet to the correct handler for processing
 
+    # Publish the packet to MQTT
+    publish_dict_to_mqtt(MQTT_BROKER, MQTT_PORT, MQTT_TOPIC, packet)
+    
+    
     # extract interface details from inbound packet
     rxType = type(interface).__name__
 
@@ -1495,11 +1536,12 @@ async def start_rx():
         #schedule.every().day.at("09:00").do(lambda: send_message("Good Morning", 2, 0, 1))
 
         # Send WX every Morning at 08:00 using handle_wxc function to channel 2 on device 1
-        #schedule.every().day.at("08:00").do(lambda: send_message(handle_wxc(0, 1, 'wx'), 2, 0, 1))
+        schedule.every().day.at("05:30").do(lambda: send_message(handle_wxc(0, 1, 'wx'), 2, 0, 1))
         
         # Send Weather Channel Notice Wed. Noon on channel 2, device 1
-        #schedule.every().wednesday.at("12:00").do(lambda: send_message("Weather alerts available on 'Alerts' channel with default 'AQ==' key.", 2, 0, 1))
-
+        schedule.every().day.at("13:00").do(lambda: send_message("Weather and other important alerts available on 'NHAlerts' channel with default 'NA==' key.", 0, 0, 1))
+        schedule.every().day.at("13:00").do(lambda: send_message("Weather and other important alerts available on 'NHAlerts' channel with default 'NA==' key.", 1, 0, 1))
+        
         # Send config URL for Medium Fast Network Use every other day at 10:00 to default channel 2 on device 1
         #schedule.every(2).days.at("10:00").do(lambda: send_message("Join us on Medium Fast https://meshtastic.org/e/#CgcSAQE6AggNEg4IARAEOAFAA0gBUB5oAQ", 2, 0, 1))
 
